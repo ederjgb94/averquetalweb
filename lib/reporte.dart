@@ -44,6 +44,7 @@ Future<Uint8List> generateReporte(
   required String tel,
   required String fecha,
   required String cliente,
+  required String datosGenerales,
 }) async {
   final lorem = pw.LoremText();
 
@@ -103,27 +104,28 @@ Future<Uint8List> generateReporte(
     tel: tel,
     fecha: fecha,
     cliente: cliente,
+    datosGenerales: datosGenerales,
   );
   return await invoice.buildPdf(pageFormat);
 }
 
 class Reporte {
-  Reporte({
-    required this.products,
-    required this.customerName,
-    required this.customerAddress,
-    required this.invoiceNumber,
-    required this.tax,
-    required this.paymentInfo,
-    required this.baseColor,
-    required this.accentColor,
-    required this.items,
-    required this.tipoMantenimiento,
-    required this.domicilio,
-    required this.tel,
-    required this.fecha,
-    required this.cliente,
-  });
+  Reporte(
+      {required this.products,
+      required this.customerName,
+      required this.customerAddress,
+      required this.invoiceNumber,
+      required this.tax,
+      required this.paymentInfo,
+      required this.baseColor,
+      required this.accentColor,
+      required this.items,
+      required this.tipoMantenimiento,
+      required this.domicilio,
+      required this.tel,
+      required this.fecha,
+      required this.cliente,
+      required this.datosGenerales});
 
   final List<Product> products;
   final String customerName;
@@ -134,7 +136,12 @@ class Reporte {
   final PdfColor baseColor;
   final PdfColor accentColor;
   final List<Map<String, dynamic>> items;
-  final String cliente, fecha, domicilio, tel, tipoMantenimiento;
+  final String cliente,
+      fecha,
+      domicilio,
+      tel,
+      tipoMantenimiento,
+      datosGenerales;
 
   static const _darkColor = PdfColors.blueGrey800;
   static const _lightColor = PdfColors.white;
@@ -615,11 +622,12 @@ class Reporte {
                                   color: PdfColors.black, width: 2),
                             ),
                             child: pw.Text(
-                              '\' ',
+                              datosGenerales,
+                              textAlign: pw.TextAlign.center,
                               style: pw.TextStyle(
-                                color: PdfColors.white,
+                                color: PdfColors.black,
+                                // fontSize: 10,
                               ),
-                              textAlign: pw.TextAlign.right,
                             ),
                           ),
                         ),
@@ -644,12 +652,17 @@ class Reporte {
                               border: pw.Border.all(
                                   color: PdfColors.black, width: 2),
                             ),
-                            child: pw.Text(
-                              '\'',
-                              style: pw.TextStyle(
-                                color: PdfColors.white,
+                            child: pw.Padding(
+                              padding: pw.EdgeInsets.only(
+                                left: 4,
                               ),
-                              textAlign: pw.TextAlign.right,
+                              child: pw.Text(
+                                tipoMantenimiento,
+                                style: pw.TextStyle(
+                                  color: PdfColors.black,
+                                  // fontSize: 10,
+                                ),
+                              ),
                             ),
                           ),
                         ),

@@ -196,6 +196,7 @@ class _MyAppState extends State<MyApp> {
                   tel: '(833) 321 22 44',
                   tipoMantenimiento: 'Diagóstico',
                   cliente: 'Lupe',
+                  datosGenerales: 'Jetta 2015',
                 );
                 final file = File('$dir/algo3.pdf');
                 showDialog(
