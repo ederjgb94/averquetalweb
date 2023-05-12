@@ -22,6 +22,8 @@
  *   
  */
 
+import 'dart:math';
+
 import 'package:averquetalweb/ticketpdf.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -33,52 +35,74 @@ import 'package:printing/printing.dart';
 const String _MessageFooter =
     '(1)Todarevisiongeneracostosparasuelaboracion.(2)Todaslapiezasobservadasdurantelarevisionseencontraroncomoseexplican.(3)LafinalidaddetodaRevisionesdeterminarellugardondeseencuentraelproblema,antesdegenerarcambiosinnecesarios.(4)sirequierereparacionesadicionalesaplicancargosadicionales.(5)Todosnuestrospreciosson+iva16%.(6)Enparteselectricasnohaygarantiadeningunaespecie.';
 
-Future<Uint8List> generateReporte(PdfPageFormat pageFormat) async {
+Future<Uint8List> generateReporte(
+  PdfPageFormat pageFormat, {
+  required List<Map<String, dynamic>> ticket,
+  required List<Map<String, dynamic>> items,
+  required String tipoMantenimiento,
+  required String domicilio,
+  required String tel,
+  required String fecha,
+  required String cliente,
+}) async {
   final lorem = pw.LoremText();
 
-  final items = <Map<String, dynamic>>[
-    {
-      "tipo": "servicio",
-      "nombre": "Afinación Mayor Completa",
-    },
-    {
-      "tipo": "seccion",
-      "nombre": "Cambio de Bujias",
-    },
-    {
-      "tipo": "respuesta",
-      "nombre": "Iridium",
-      "seleccionado": "No aplica",
-    },
-  ];
+  // final items = <Map<String, dynamic>>[
+  //   {
+  //     "tipo": "servicio",
+  //     "nombre": "Afinación Mayor Completa",
+  //   },
+  //   {
+  //     "tipo": "seccion",
+  //     "nombre": "Cambio de Bujias",
+  //   },
+  //   {
+  //     "tipo": "respuesta",
+  //     "nombre": "normal",
+  //     "seleccionado": "done",
+  //   },
+  //   {
+  //     "tipo": "respuesta",
+  //     "nombre": "Platino",
+  //     "seleccionado": "No aplica",
+  //   },
+  //   {
+  //     "tipo": "respuesta",
+  //     "nombre": "Iridium",
+  //     "seleccionado": "No aplica",
+  //   },
+  // ];
 
-  final products = <Product>[
-    Product('19874', lorem.sentence(4), 3.99, 2),
-    Product('98452', lorem.sentence(6), 15, 2),
-    Product('28375', lorem.sentence(4), 6.95, 3),
-    Product('95673', lorem.sentence(3), 49.99, 4),
-    Product('23763', lorem.sentence(2), 560.03, 1),
-    Product('55209', lorem.sentence(5), 26, 1),
-    Product('09853', lorem.sentence(5), 26, 1),
-    Product('23463', lorem.sentence(5), 34, 1),
-    Product('56783', lorem.sentence(5), 7, 4),
-    Product('78256', lorem.sentence(5), 23, 1),
-    Product('23745', lorem.sentence(5), 94, 1),
-    Product('07834', lorem.sentence(5), 12, 1),
-    Product('23547', lorem.sentence(5), 34, 1),
-    Product('98387', lorem.sentence(5), 7.99, 2),
-  ];
+  final products = <Product>[];
+
+  for (var p in ticket) {
+    Product producto = Product(
+      '1',
+      p['nombre'],
+      double.parse(p['seleccionado'].toString()),
+      1,
+    );
+    products.add(producto);
+  }
 
   final invoice = Reporte(
-    invoiceNumber: '982347',
+    invoiceNumber: Random().nextInt(999999).toString(),
     products: products,
-    customerName: 'Abraham Swearegin',
-    customerAddress: '54 rue de Rivoli\n75001 Paris, France',
+    customerName:
+        'Especialista en Electronica de Aviacion\nArturo E. Nieto Martinez',
+    customerAddress:
+        'Oaxaca# 403, Col. Fco. Javier Mina C.p.89318 Tampico, Tamps.',
     paymentInfo:
-        '4509 Wiseman Street\nKnoxville, Tennessee(TN), 37929\n865-372-0425',
-    tax: .15,
+        'Arturo E. Nieto Martinez\nEspecialista en Electronica de Aviacion\nOaxaca# 403, Col. Fco. Javier Mina C.p.89318 Tampico, Tamps.\nCell: (833) 267 65 94 & (833) 312 71 99,\n(Email) Superarthus_74@outlook.com',
+    tax: .16,
     baseColor: PdfColors.blue800,
     accentColor: PdfColors.blueGrey900,
+    items: items,
+    tipoMantenimiento: tipoMantenimiento,
+    domicilio: domicilio,
+    tel: tel,
+    fecha: fecha,
+    cliente: cliente,
   );
   return await invoice.buildPdf(pageFormat);
 }
@@ -93,6 +117,12 @@ class Reporte {
     required this.paymentInfo,
     required this.baseColor,
     required this.accentColor,
+    required this.items,
+    required this.tipoMantenimiento,
+    required this.domicilio,
+    required this.tel,
+    required this.fecha,
+    required this.cliente,
   });
 
   final List<Product> products;
@@ -103,6 +133,8 @@ class Reporte {
   final String paymentInfo;
   final PdfColor baseColor;
   final PdfColor accentColor;
+  final List<Map<String, dynamic>> items;
+  final String cliente, fecha, domicilio, tel, tipoMantenimiento;
 
   static const _darkColor = PdfColors.blueGrey800;
   static const _lightColor = PdfColors.white;
@@ -143,9 +175,33 @@ class Reporte {
         build: (context) => [
           _buildDatosGenerales(context),
           _buildItems(context),
-          pw.SizedBox(height: 20),
+          // pw.SizedBox(height: 20),
           //_contentHeader(context),
           // _contentTable(context),
+          // pw.SizedBox(height: 20),
+          // _contentFooter(context),
+          // pw.SizedBox(height: 20),
+          // _termsAndConditions(context),
+        ],
+      ),
+    );
+
+    doc.addPage(
+      pw.MultiPage(
+        pageTheme: _buildTheme(
+          pageFormat,
+          await PdfGoogleFonts.robotoRegular(),
+          await PdfGoogleFonts.robotoBold(),
+          await PdfGoogleFonts.robotoItalic(),
+        ),
+        header: _buildHeader,
+        footer: _buildFooter,
+        build: (context) => [
+          // _buildDatosGenerales(context),
+          // _buildItems(context),
+          // pw.SizedBox(height: 20),
+          // _contentHeader(context),
+          _contentTable(context),
           pw.SizedBox(height: 20),
           _contentFooter(context),
           pw.SizedBox(height: 20),
@@ -172,7 +228,7 @@ class Reporte {
                     padding: const pw.EdgeInsets.only(left: 0),
                     alignment: pw.Alignment.centerLeft,
                     child: pw.Text(
-                      'REPORTE',
+                      '',
                       style: pw.TextStyle(
                         color: PdfColors.black,
                         fontWeight: pw.FontWeight.bold,
@@ -249,6 +305,33 @@ class Reporte {
     );
   }
 
+  pw.Widget _buildTicket(pw.Context context) {
+    return pw.Container(
+      decoration: pw.BoxDecoration(
+        border: pw.Border.all(color: PdfColors.black, width: 2),
+      ),
+      child: pw.Row(children: [
+        pw.Expanded(
+          child: pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+            children: items.map((e) {
+              //servicio, seccion, respuesta
+              return pw.Row(
+                children: [
+                  pw.Expanded(
+                    child: pw.Text(
+                      e['nombre'],
+                    ),
+                  ),
+                ],
+              );
+            }).toList(),
+          ),
+        ),
+      ]),
+    );
+  }
+
   pw.Widget _buildItems(pw.Context context) {
     return pw.Container(
       decoration: pw.BoxDecoration(
@@ -257,9 +340,85 @@ class Reporte {
       child: pw.Row(children: [
         pw.Expanded(
           child: pw.Column(
-            children: [
-              pw.Text('algo'),
-            ],
+            crossAxisAlignment: pw.CrossAxisAlignment.stretch,
+            children: items.map((e) {
+              //servicio, seccion, respuesta
+              if (e['tipo'] == 'servicio') {
+                return pw.Container(
+                  padding: pw.EdgeInsets.only(
+                    top: 2,
+                    bottom: 2,
+                  ),
+                  decoration: pw.BoxDecoration(
+                    border: pw.Border.all(color: PdfColors.black, width: 2),
+                  ),
+                  child: pw.Text(
+                    e['nombre'],
+                    textAlign: pw.TextAlign.center,
+                    style: pw.TextStyle(
+                      color: PdfColors.black,
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 14,
+                    ),
+                  ),
+                );
+              } else if (e['tipo'] == 'seccion') {
+                return pw.Container(
+                  padding: pw.EdgeInsets.only(
+                    left: 20,
+                    top: 2,
+                    bottom: 2,
+                  ),
+                  decoration: pw.BoxDecoration(
+                    border: pw.Border.all(color: PdfColors.black, width: 2),
+                  ),
+                  child: pw.Text(
+                    e['nombre'] + ':',
+                    textAlign: pw.TextAlign.left,
+                    style: pw.TextStyle(
+                      color: PdfColors.black,
+                      fontWeight: pw.FontWeight.normal,
+                      fontStyle: pw.FontStyle.italic,
+                      fontSize: 12,
+                    ),
+                  ),
+                );
+              } else if (e['tipo'] == 'respuesta') {
+                //nombre y seleccionado
+
+                algo(s) => s == 'done'
+                    ? '√'
+                    : s == 'close'
+                        ? 'X'
+                        : s == 'fs'
+                            ? 'f/s'
+                            : s;
+
+                return pw.Container(
+                  padding: pw.EdgeInsets.only(
+                    left: 60,
+                    top: 5,
+                    bottom: 5,
+                  ),
+                  decoration: pw.BoxDecoration(
+                    border: pw.Border.all(color: PdfColors.black, width: 2),
+                  ),
+                  child: pw.Text(
+                    e['nombre'] +
+                        ': [ ' +
+                        algo(e['seleccionado'].toString()) +
+                        ' ]',
+                    textAlign: pw.TextAlign.left,
+                    style: pw.TextStyle(
+                      color: PdfColors.black,
+                      fontWeight: pw.FontWeight.bold,
+                      fontSize: 12,
+                    ),
+                  ),
+                );
+              }
+              return pw.Container();
+            }).toList(),
           ),
         ),
       ]),
@@ -307,12 +466,17 @@ class Reporte {
                             // width: 385,
                             child: pw.Column(
                               mainAxisAlignment: pw.MainAxisAlignment.center,
-                              crossAxisAlignment: pw.CrossAxisAlignment.end,
+                              crossAxisAlignment: pw.CrossAxisAlignment.stretch,
                               children: [
-                                pw.Text(
-                                  ' \' ',
-                                  style: pw.TextStyle(
-                                    color: PdfColors.white,
+                                pw.Padding(
+                                  padding: pw.EdgeInsets.only(
+                                    left: 4,
+                                  ),
+                                  child: pw.Text(
+                                    cliente,
+                                    style: pw.TextStyle(
+                                      color: PdfColors.black,
+                                    ),
                                   ),
                                 ),
                                 pw.Container(height: 1, color: PdfColors.black),
@@ -321,10 +485,16 @@ class Reporte {
                                   crossAxisAlignment: pw.CrossAxisAlignment.end,
                                   children: [
                                     pw.Expanded(
-                                      child: pw.Text(
-                                        ' \' ',
-                                        style: pw.TextStyle(
-                                          color: PdfColors.white,
+                                      child: pw.Padding(
+                                        padding: pw.EdgeInsets.only(
+                                          left: 4,
+                                        ),
+                                        child: pw.Text(
+                                          domicilio,
+                                          style: pw.TextStyle(
+                                            color: PdfColors.black,
+                                            fontSize: 10,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -342,10 +512,16 @@ class Reporte {
                                     pw.SizedBox(width: 11),
                                     pw.Container(
                                         width: 1,
-                                        child: pw.Text(
-                                          ' \' ',
-                                          style: pw.TextStyle(
-                                            color: PdfColors.white,
+                                        child: pw.Padding(
+                                          padding: pw.EdgeInsets.only(
+                                            left: 4,
+                                          ),
+                                          child: pw.Text(
+                                            tel,
+                                            style: pw.TextStyle(
+                                              color: PdfColors.black,
+                                              // fontSize: 10,
+                                            ),
                                           ),
                                         ),
                                         color: PdfColors.black),
@@ -385,10 +561,16 @@ class Reporte {
                                     pw.SizedBox(width: 3),
                                     pw.Container(
                                         width: 1,
-                                        child: pw.Text(
-                                          ' \' ',
-                                          style: pw.TextStyle(
-                                            color: PdfColors.white,
+                                        child: pw.Padding(
+                                          padding: pw.EdgeInsets.only(
+                                            left: 4,
+                                          ),
+                                          child: pw.Text(
+                                            fecha,
+                                            style: pw.TextStyle(
+                                              color: PdfColors.black,
+                                              // fontSize: 10,
+                                            ),
                                           ),
                                         ),
                                         color: PdfColors.black),
@@ -779,11 +961,9 @@ class Reporte {
 
   pw.Widget _contentTable(pw.Context context) {
     const tableHeaders = [
-      '#',
-      'Item Description',
-      'Price',
-      'Quantity',
-      'Total'
+      'CANTIDAD',
+      'DESCRIPCIÓN',
+      'TOTAL',
     ];
 
     return pw.Table.fromTextArray(
@@ -791,16 +971,14 @@ class Reporte {
       cellAlignment: pw.Alignment.centerLeft,
       headerDecoration: pw.BoxDecoration(
         borderRadius: const pw.BorderRadius.all(pw.Radius.circular(2)),
-        color: baseColor,
+        color: _darkColor,
       ),
       headerHeight: 25,
       cellHeight: 40,
       cellAlignments: {
         0: pw.Alignment.centerLeft,
         1: pw.Alignment.centerLeft,
-        2: pw.Alignment.centerRight,
-        3: pw.Alignment.center,
-        4: pw.Alignment.centerRight,
+        2: pw.Alignment.center,
       },
       headerStyle: pw.TextStyle(
         color: _baseTextColor,

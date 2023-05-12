@@ -5,6 +5,7 @@ import 'package:crypto/crypto.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_pdfview/flutter_pdfview.dart';
+import 'package:intl/intl.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
 import 'package:pdf/pdf.dart';
@@ -150,7 +151,52 @@ class _MyAppState extends State<MyApp> {
               trailing: const Icon(Icons.share),
               onTap: () async {
                 final dir = (await getDirectory()).path;
-                var pdf = await generateReporte(PdfPageFormat.letter);
+                var pdf = await generateReporte(
+                  PdfPageFormat.letter,
+                  ticket: [
+                    {
+                      "tipo": "concepto",
+                      "nombre": "Thermostato",
+                      "seleccionado": 180.00,
+                    },
+                    {
+                      "tipo": "concepto",
+                      "nombre": "Reemplazo de Thermostato",
+                      "seleccionado": 220.00,
+                    },
+                  ],
+                  items: [
+                    {
+                      "tipo": "servicio",
+                      "nombre": "Afinación Mayor Completa",
+                    },
+                    {
+                      "tipo": "seccion",
+                      "nombre": "Cambio de Bujias",
+                    },
+                    {
+                      "tipo": "respuesta",
+                      "nombre": "normal",
+                      "seleccionado": "done",
+                    },
+                    {
+                      "tipo": "respuesta",
+                      "nombre": "Platino",
+                      "seleccionado": "No aplica",
+                    },
+                    {
+                      "tipo": "respuesta",
+                      "nombre": "Iridium",
+                      "seleccionado": "No aplica",
+                    },
+                  ],
+                  domicilio: 'Buen Canada Linda Vista #320',
+                  fecha:
+                      DateFormat('d MMMM yyyy [h:mm a]').format(DateTime.now()),
+                  tel: '(833) 321 22 44',
+                  tipoMantenimiento: 'Diagóstico',
+                  cliente: 'Lupe',
+                );
                 final file = File('$dir/algo3.pdf');
                 showDialog(
                   context: context,
@@ -198,69 +244,69 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+// class HomePage extends StatefulWidget {
+//   const HomePage({super.key});
 
-  @override
-  State<HomePage> createState() => _HomePageState();
-}
+//   @override
+//   State<HomePage> createState() => _HomePageState();
+// }
 
-class _HomePageState extends State<HomePage> {
-  Future<Directory> getDirectory() async {
-    return await getApplicationDocumentsDirectory();
-  }
+// class _HomePageState extends State<HomePage> {
+//   Future<Directory> getDirectory() async {
+//     return await getApplicationDocumentsDirectory();
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text("My App"),
-      ),
-      body: Center(
-        child: FutureBuilder(
-          future: getDirectory(),
-          builder: (BuildContext context, AsyncSnapshot<Directory> snapshot) {
-            String? dir = snapshot.data?.path.toString();
-            if (snapshot.hasData) {
-              return Column(
-                children: [
-                  ElevatedButton(
-                    onPressed: () async {
-                      var pdf = await generateReporte(PdfPageFormat.letter);
-                      final file = File('$dir/example6.pdf');
-                      await file.writeAsBytes(pdf);
-                    },
-                    child: const Text("Click Me2"),
-                  ),
-                  Text('$dir/example5.pdf'),
-                  ElevatedButton(
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => Scaffold(
-                            appBar: AppBar(),
-                            body: PDFView(
-                              filePath: '$dir/example6.pdf',
-                              enableSwipe: true,
-                              swipeHorizontal: true,
-                              autoSpacing: false,
-                              pageFling: false,
-                            ),
-                          ),
-                        ),
-                      );
-                    },
-                    child: const Text("pdf Me"),
-                  ),
-                ],
-              );
-            } else {
-              return const CircularProgressIndicator();
-            }
-          },
-        ),
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Scaffold(
+//       appBar: AppBar(
+//         title: const Text("My App"),
+//       ),
+//       body: Center(
+//         child: FutureBuilder(
+//           future: getDirectory(),
+//           builder: (BuildContext context, AsyncSnapshot<Directory> snapshot) {
+//             String? dir = snapshot.data?.path.toString();
+//             if (snapshot.hasData) {
+//               return Column(
+//                 children: [
+//                   ElevatedButton(
+//                     onPressed: () async {
+//                       var pdf = await generateReporte(PdfPageFormat.letter);
+//                       final file = File('$dir/example6.pdf');
+//                       await file.writeAsBytes(pdf);
+//                     },
+//                     child: const Text("Click Me2"),
+//                   ),
+//                   Text('$dir/example5.pdf'),
+//                   ElevatedButton(
+//                     onPressed: () {
+//                       Navigator.push(
+//                         context,
+//                         MaterialPageRoute(
+//                           builder: (context) => Scaffold(
+//                             appBar: AppBar(),
+//                             body: PDFView(
+//                               filePath: '$dir/example6.pdf',
+//                               enableSwipe: true,
+//                               swipeHorizontal: true,
+//                               autoSpacing: false,
+//                               pageFling: false,
+//                             ),
+//                           ),
+//                         ),
+//                       );
+//                     },
+//                     child: const Text("pdf Me"),
+//                   ),
+//                 ],
+//               );
+//             } else {
+//               return const CircularProgressIndicator();
+//             }
+//           },
+//         ),
+//       ),
+//     );
+//   }
+// }
